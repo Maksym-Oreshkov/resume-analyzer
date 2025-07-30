@@ -31,11 +31,20 @@ const Auth = () => {
       <AnimatedGradient />
       <div className="gradient-border shadow-lg">
         <section className="flex flex-col gap-8 bg-white rounded-2xl p-10">
+          <div className="flex items-center justify-center">
+            <p className="text-2xl font-bold text-gradient bg-dark-200 rounded-2xl ">
+              RESUMATIC
+            </p>
+          </div>
           <div className="flex flex-col gap-2 text-center">
             <h1>Welcome</h1>
             <h2>Log In to Continue Your Job Journey</h2>
           </div>
           <div>
+            <div className="flex items-center justify-center self-center">
+              <img src="../images/humster-1.png" className="w-[200px] " />
+            </div>
+
             {isLoading ? (
               <button className="auth-button animate-pulse" disabled>
                 <p>Loading...</p>
