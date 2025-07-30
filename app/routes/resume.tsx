@@ -4,6 +4,7 @@ import ATS from "~/components/ATS";
 import Details from "~/components/Details";
 import Summary from "~/components/Summary";
 import { usePuterStore } from "~/lib/puter";
+import AnimatedGradient from "~/ui/AnimatedGradient";
 
 export const meta = () => [
   { title: "Resumatic | Auth" },
@@ -52,6 +53,7 @@ const Resume = () => {
 
   return (
     <main className="!pt-0">
+      <AnimatedGradient />
       <nav className="resume-nav">
         <Link to="/" className="back-button">
           <img src="/icons/back.svg" alt="logo" className="w-2.5 h-2.5" />

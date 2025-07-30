@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { useLocation, useNavigate } from "react-router";
 import { usePuterStore } from "~/lib/puter";
+import AnimatedGradient from "~/ui/AnimatedGradient";
 
 export const meta = () => [
   { title: "Resumatic | Auth" },
@@ -10,15 +11,24 @@ export const meta = () => [
 const Auth = () => {
   const { isLoading, auth } = usePuterStore();
   const location = useLocation();
-  const next = location.search.split("next=")[1];
   const navigate = useNavigate();
 
+  const searchParams = new URLSearchParams(location.search);
+  const next = searchParams.get("next") || "/";
+
   useEffect(() => {
-    if (auth.isAuthenticated) navigate(next);
-  }, [auth.isAuthenticated, next]);
+    if (auth.isAuthenticated) {
+      navigate(next);
+    }
+  }, [auth.isAuthenticated, next, navigate]);
+
+  const handleSignIn = async () => {
+    await auth.signIn();
+  };
 
   return (
-    <main className="bg-[url('/images/bg-main.svg')] bg-cover min-h-screen flex items-center justify-center">
+    <main className=" min-h-screen flex items-center justify-center">
+      <AnimatedGradient />
       <div className="gradient-border shadow-lg">
         <section className="flex flex-col gap-8 bg-white rounded-2xl p-10">
           <div className="flex flex-col gap-2 text-center">
@@ -27,21 +37,13 @@ const Auth = () => {
           </div>
           <div>
             {isLoading ? (
-              <button className="auth-button animate-pulse">
-                <p>Signing you in ...</p>
+              <button className="auth-button animate-pulse" disabled>
+                <p>Loading...</p>
               </button>
             ) : (
-              <>
-                {auth.isAuthenticated ? (
-                  <button className="auth-button" onClick={auth.signOut}>
-                    <p>Log Out</p>
-                  </button>
-                ) : (
-                  <button className="auth-button" onClick={auth.signIn}>
-                    <p>Log In</p>
-                  </button>
-                )}
-              </>
+              <button className="auth-button" onClick={handleSignIn}>
+                <p>Log In</p>
+              </button>
             )}
           </div>
         </section>

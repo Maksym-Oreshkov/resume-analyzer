@@ -6,6 +6,7 @@ import { convertPdfToImage } from "~/lib/pdf2img";
 import { usePuterStore } from "~/lib/puter";
 import { generateUUID } from "~/lib/utils";
 import { prepareInstructions } from "../../constants";
+import AnimatedGradient from "~/ui/AnimatedGradient";
 
 const Upload = () => {
   const { auth, isLoading, fs, ai, kv } = usePuterStore();
@@ -94,7 +95,8 @@ const Upload = () => {
     handleAnalyze({ companyName, jobTitle, jobDescription, file });
   };
   return (
-    <main className="bg-[url('/images/bg-main.svg')] bg-cover">
+    <main /* className="bg-[url('/images/bg-main.svg')] bg-cover" */>
+      <AnimatedGradient />
       <Navbar />
 
       <section className="main-section">
