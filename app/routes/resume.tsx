@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, useNavigate, useParams } from "react-router";
+import { Link, useNavigate, useParams, useSearchParams } from "react-router";
 import ATS from "~/components/ATS";
 import Details from "~/components/Details";
 import Summary from "~/components/Summary";
@@ -14,9 +14,12 @@ export const meta = () => [
 const Resume = () => {
   const { auth, isLoading, fs, kv } = usePuterStore();
   const { id } = useParams();
+  const [searchParams] = useSearchParams();
   const [imageUrl, setImageUrl] = useState("");
   const [resumeUrl, setResumeUrl] = useState("");
   const [feedback, setFeedback] = useState<Feedback | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [isLoadingData, setIsLoadingData] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -26,30 +29,66 @@ const Resume = () => {
 
   useEffect(() => {
     const loadResume = async () => {
-      const resume = await kv.get(`resume:${id}`);
+      try {
+        setIsLoadingData(true);
+        const resume = await kv.get(`resume:${id}`);
 
-      if (!resume) return;
+        if (!resume) {
+          setError("Resume not found");
+          setIsLoadingData(false);
+          return;
+        }
 
-      const data = JSON.parse(resume);
+        const data = JSON.parse(resume);
 
-      const resumeBlob = await fs.read(data.resumePath);
-      if (!resumeBlob) return;
+        if (data.error) {
+          setError(data.error);
+          setTimeout(() => {
+            navigate("/");
+          }, 5000);
+        }
 
-      const pdfBlob = new Blob([resumeBlob], { type: "application/pdf" });
-      const resumeUrl = URL.createObjectURL(pdfBlob);
-      setResumeUrl(resumeUrl);
+        const resumeBlob = await fs.read(data.resumePath);
+        if (!resumeBlob) {
+          setError("Failed to load resume file");
+          setIsLoadingData(false);
+          return;
+        }
 
-      const imageBlob = await fs.read(data.imagePath);
-      if (!imageBlob) return;
-      const imageUrl = URL.createObjectURL(imageBlob);
-      setImageUrl(imageUrl);
+        const pdfBlob = new Blob([resumeBlob], { type: "application/pdf" });
+        const resumeUrl = URL.createObjectURL(pdfBlob);
+        setResumeUrl(resumeUrl);
 
-      setFeedback(data.feedback);
-      console.log({ resumeUrl, imageUrl, feedback: data.feedback });
+        const imageBlob = await fs.read(data.imagePath);
+        if (!imageBlob) {
+          setError("Failed to load resume preview");
+          setIsLoadingData(false);
+          return;
+        }
+
+        const imageUrl = URL.createObjectURL(imageBlob);
+        setImageUrl(imageUrl);
+
+        if (!data.error && data.feedback) {
+          setFeedback(data.feedback);
+        }
+
+        setIsLoadingData(false);
+      } catch (err: any) {
+        console.error("Error loading resume:", err);
+        setError("Failed to load resume data");
+        setIsLoadingData(false);
+      }
     };
 
     loadResume();
   }, [id]);
+
+  useEffect(() => {
+    if (searchParams.get("error") === "true" && !error) {
+      setError("AI analysis failed. You may have exceeded your usage limit.");
+    }
+  }, [searchParams]);
 
   return (
     <main className="!pt-0">
@@ -62,6 +101,19 @@ const Resume = () => {
           </span>
         </Link>
       </nav>
+
+      {error && (
+        <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 max-w-md w-full px-4">
+          <div className="bg-red-50 border border-red-200 text-red-700 px-6 py-4 rounded-lg shadow-lg">
+            <p className="font-semibold text-lg mb-1">Error</p>
+            <p className="mb-2">{error}</p>
+            <p className="text-sm opacity-75">
+              Redirecting to homepage in 5 seconds...
+            </p>
+          </div>
+        </div>
+      )}
+
       <div className="flex flex-row w-full max-lg:flex-col-reverse">
         <section className="feedback-section bg-[url('/images/bg-small.svg') bg-cover h-[100vh] sticky top-0 items-center justify-center">
           {imageUrl && resumeUrl && (
@@ -78,7 +130,10 @@ const Resume = () => {
         </section>
         <section className="feedback-section">
           <h2 className="text-4xl !text-black font-bold">Resume Review</h2>
-          {feedback ? (
+
+          {isLoadingData ? (
+            <img src="/images/resume-scan-2.gif" className="w-full" />
+          ) : feedback ? (
             <div className="flex flex-col gap-8 animate-in fade-in duration-1000">
               <Summary feedback={feedback} />
               <ATS
@@ -87,8 +142,26 @@ const Resume = () => {
               />
               <Details feedback={feedback} />
             </div>
+          ) : error ? (
+            <div className="flex flex-col items-center justify-center py-16">
+              <img
+                src="/icons/error.svg"
+                alt="error"
+                className="w-24 h-24 mb-4 opacity-50"
+              />
+              <p className="text-gray-600 text-center max-w-md">
+                We couldn't analyze your resume at this time.
+                {error.includes("limit") &&
+                  " You may have reached your usage limit."}
+              </p>
+              <Link to="/" className="primary-button mt-6">
+                Try Again
+              </Link>
+            </div>
           ) : (
-            <img src="/images/resume-scan-2.gif" className="w-full" />
+            <div className="text-center py-16">
+              <p className="text-gray-600">No feedback available</p>
+            </div>
           )}
         </section>
       </div>

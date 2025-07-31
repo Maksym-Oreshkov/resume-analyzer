@@ -50,6 +50,7 @@ interface PuterChatOptions {
 }
 
 interface AIResponse {
+  success: boolean;
   index: number;
   message: {
     role: string;

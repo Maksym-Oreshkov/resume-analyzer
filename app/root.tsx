@@ -25,6 +25,38 @@ export const links: Route.LinksFunction = () => [
   },
 ];
 
+export const meta: Route.MetaFunction = () => {
+  const baseUrl = "https://resumatic.pro/";
+
+  return [
+    { title: "Resumatic" },
+    {
+      name: "Check Your Resume",
+      content: "Track Your Applications & Resume Ratings",
+    },
+
+    { property: "og:title", content: "Resumatic" },
+    {
+      property: "og:description",
+      content: "Track Your Applications & Resume Ratings",
+    },
+
+    { property: "og:image", content: `${baseUrl}/og-image.png` },
+    { property: "og:image:width", content: "1200" },
+    { property: "og:image:height", content: "630" },
+    { property: "og:type", content: "website" },
+    { property: "og:url", content: baseUrl },
+
+    { name: "twitter:card", content: "summary_large_image" },
+    { name: "twitter:title", content: "Resumatic" },
+    {
+      name: "twitter:description",
+      content: "Track Your Applications & Resume Ratings",
+    },
+    { name: "twitter:image", content: `${baseUrl}/og-image.png` },
+  ];
+};
+
 export function Layout({ children }: { children: React.ReactNode }) {
   const { init } = usePuterStore();
 
